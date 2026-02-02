@@ -1,61 +1,56 @@
-import os
-import sys
+from fastapi import FastAPI
+from pydantic import BaseModel, EmailStr
 import smtplib
-import time
-
-from dotenv import load_dotenv
-load_dotenv()
-
-# import imghdr > this package is outdated as of 2025
-# ^^^^^^^^^^^^^ is needed to attach images to mails
-
 from email.message import EmailMessage
+import uuid
 
-SENDER_EMAIL_ADDRESS = os.getenv('EMAIL_USER')
-SENDER_EMAIL_PASSWORD = os.getenv('EMAIL_PASS')
+app = FastAPI()
 
-def send_email(recepient_email, subject, body):
-    msg = EmailMessage()
-    msg['Subject'] = subject
-    msg['From'] = SENDER_EMAIL_ADDRESS
-    msg['To'] = recepient_email
-    msg.set_content(body)
-    with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
-        smtp.login(SENDER_EMAIL_ADDRESS, SENDER_EMAIL_PASSWORD)
-        smtp.send_message(msg)
-        
+# In-memory store for tokens and credentials (for demo only)
+auth_tokens = {}
 
-def main():
-    print("Welcome!")
-    resp = int(input("""
-                     Choose your option: 
-                     1 == Many recepients
-                     2 == Many emails
-    : """))
-    if resp == 1:
-        recepient_list = []
-        while True:
-            recepient = input("Enter the recepient email: ")
-            if recepient.lower == "q":
-                break
-            recepient_list.append(recepient)
-        subject = input("Enter the subject: ")
-        print("Enter the message body, Press CTRL+D (Linux/Mac) or CTRL+Z (Windows) to finish:")
-        body = sys.stdin.read()
-        print("Body:\n", body)
-        for rece in recepient_list:
-            send_email(rece, subject=subject, body=body)
-            time.sleep(1)
-    elif resp == 2:
-        n = int(input("Enter the count: "))
-        recepient = input("Enter the recepient email: ")
-        subject = input("Enter the subject: ")
-        print("Enter the message body, Press CTRL+D (Linux/Mac) or CTRL+Z (Windows) to finish:")
-        body = sys.stdin.read()
-        print("Body:\n", body)
-        for i in range(n):
-            send_email(recepient,subject,body)
-            time.sleep(1)
+class AuthRequest(BaseModel):
+    email: EmailStr
+    password: str
 
-if __name__ == "__main__":
-    main()
+class AuthResponse(BaseModel):
+    message: str
+    sender_email: EmailStr = None
+    token: str = None
+
+class MailRequest(BaseModel):
+    recipient_email: EmailStr
+    subject: str
+    body: str
+    quantity: int
+    token: str
+
+@app.post("/auth", response_model=AuthResponse)
+async def auth(request: AuthRequest):
+    try:
+        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
+            smtp.login(request.email, request.password)
+        token = str(uuid.uuid4())
+        auth_tokens[token] = {"email": request.email, "password": request.password}
+        return AuthResponse(message="Authentication successful", sender_email=request.email, token=token)
+    except smtplib.SMTPAuthenticationError:
+        return AuthResponse(message="Authentication failed")
+
+@app.post("/mail")
+async def mail(request: MailRequest):
+    creds = auth_tokens.get(request.token)
+    if not creds:
+        return {"message": "Invalid or expired token"}
+    try:
+        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
+            smtp.login(creds["email"], creds["password"])
+            msg = EmailMessage()
+            msg['Subject'] = request.subject
+            msg['From'] = creds["email"]
+            msg['To'] = request.recipient_email
+            msg.set_content(request.body)
+            for _ in range(request.quantity):
+                smtp.send_message(msg)
+        return {"message": "Success"}
+    except Exception as e:
+        return {"message": f"Failed to send email: {str(e)}"}
