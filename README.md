@@ -1,11 +1,11 @@
-# Emailer v4
+# [Emailer v4](https://emailer-v3-api.onrender.com)
 
 ![Fernet](https://img.shields.io/badge/Fernet-AES--128-blue)
 ![SHA-256](https://img.shields.io/badge/SHA--256-Hashing-green)
 ![SMTP](https://img.shields.io/badge/SMTP-SSL-orange)
 ![Gmail](https://img.shields.io/badge/Gmail-Compatible-red)
 
-**Minimal, secure token-based emailer API**
+
 
 ## Features
 
