@@ -1,9 +1,13 @@
 [project]
 name = "emailer-v3"
-version = "0.1.0"
-description = "Add your description here"
+version = "3.0.0"
+description = "Token-based email API"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "dotenv>=0.9.9",
+    "fastapi>=0.109.0",
+    "uvicorn>=0.27.0",
+    "pydantic[email]>=2.5.0",
+    "cryptography>=42.0.0",
+    "motor>=3.3.0",
 ]

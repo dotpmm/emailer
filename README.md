@@ -1,52 +1,75 @@
-# Emailer v3
+# Emailer v4
 
-A lightweight command-line utility for sending emails via Gmail SMTP. The tool supports batch delivery to multiple recipients or repeated delivery to a single recipient, enabling quick outbound communication workflows. 
+![Fernet](https://img.shields.io/badge/Fernet-AES--128-blue)
+![SHA-256](https://img.shields.io/badge/SHA--256-Hashing-green)
+![SMTP](https://img.shields.io/badge/SMTP-SSL-orange)
+![Gmail](https://img.shields.io/badge/Gmail-Compatible-red)
 
-
-![Project Status](https://img.shields.io/badge/status-active-brightgreen)
-![Version](https://img.shields.io/badge/version-3.0.0-blue)
-![Python](https://img.shields.io/badge/python-3.13+-yellow)
-![SMTP](https://img.shields.io/badge/SMTP-Gmail-red)
+**Minimal, secure token-based emailer API**
 
 ## Features
 
-* Gmail SMTP over SSL (port 465)
-* Supports:
+- Multiple recepients
+- Repeat 
+- `html` support in body
+- `Cc` `Bcc` `Reply-to` everything supported
 
-  * One message to many recipients
-  * Many messages to a single recipient
-* Environment-driven credential management via `.env` variables
-* Minimal dependencies; Python 3.13+ runtime 
+## Endpoints
 
-## Requirements
-
-* Python 3.13 or later
-* Gmail account with App Password enabled
-* `.env` file containing:
-
-  ```
-  EMAIL_USER=your_email@gmail.com
-  EMAIL_PASS=your_app_password
-  ```
-
-## Installation
-
-```
-uv sync
-```
-
-(Or install with pip if preferred.)
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/` | GET | Dashboard with lifetime metrics |
+| `/auth` | POST | Authenticate with SMTP credentials, get token |
+| `/send` | POST | Send email(s) with optional repeat |
 
 ## Usage
 
-Run the CLI:
+### 1. Get a Gmail App Password
 
+> [!IMPORTANT]
+> You **must** use an App Password, not your regular Gmail password.
+
+1. Go to your [Google Account](https://myaccount.google.com/)
+2. Navigate to **Security** → **2-Step Verification** (enable if not already)
+3. Scroll down to **App passwords** or visit [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords)
+4. Select **Mail** and give it a name, then click **Generate**
+5. Copy the 16-character password (spaces don't matter)
+6. That's your app password which you need to use.
+### 2. Authenticate
+
+```bash
+curl -X POST https://your-api.com/auth \
+  -H "Content-Type: application/json" \
+  -d '{"email":"you@gmail.com","password":"xxxx xxxx xxxx xxxx"}'
 ```
-uv run src/main.py
+
+Response:
+```json
+{"token": "abc123...", "expires_in_hours": 1, "message": "..."}
 ```
 
-## Notes
+### 3. Send Email(s)
 
-* `imghdr` support is commented out because the module is deprecated as of 2025.
-* Gmail may require enabling App Passwords if 2FA is active.
+```bash
+# Single recipient
+curl -X POST https://your-api.com/send \
+  -H "Content-Type: application/json" \
+  -H "X-Token: abc123..." \
+  -d '{"recipients":"target@example.com","subject":"Hello","body":"Hi there!"}'
 
+# Multiple recipients with HTML
+curl -X POST https://your-api.com/send \
+  -H "Content-Type: application/json" \
+  -H "X-Token: abc123..." \
+  -d '{
+    "recipients": ["a@b.com", "c@d.com"],
+    "subject": "Newsletter",
+    "body": "<h1>Hello!</h1><p>Welcome aboard.</p>",
+    "is_html": true
+  }'
+```
+
+## Security
+
+- Credentials encrypted at rest (Fernet/AES) : Go check the code, i have explained in detail!
+- Tokens expire after 1 hour

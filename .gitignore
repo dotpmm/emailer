@@ -9,3 +9,35 @@ wheels/
 # Virtual environments
 .venv
 .env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+*.cover
+
+# Logs
+*.log
+logs/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Secrets
+.env.local
+.env.*.local
+secrets.json
+credentials.json
