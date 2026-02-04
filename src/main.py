@@ -356,6 +356,11 @@ async def root():
     return get_dashboard_html(metrics, len(_tokens))
 
 
+@app.get("/iamalive")
+def health():
+    return {"status": "ok"}
+
+
 @app.post("/auth", response_model=AuthResponse)
 async def authenticate(req: AuthRequest):
     """
