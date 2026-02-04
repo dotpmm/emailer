@@ -356,6 +356,26 @@ async def root():
 
 @app.post("/auth", response_model=AuthResponse)
 async def authenticate(req: AuthRequest):
+    """
+        You are here to get an authentication token.
+        Follow the steps below :)
+
+        **Steps:**
+        - App password: You **must** use an App Password, not your regular Gmail password.
+
+        1. Go to your [Google Account](https://myaccount.google.com/)
+        2. Navigate to **Security** → **2-Step Verification** (enable it if not already enabled)
+        3. Scroll down to **App passwords** or visit https://myaccount.google.com/apppasswords
+        4. Select **Mail**, give it a name, then click **Generate**
+        5. Copy the 16-character password (spaces don’t matter)
+        6. This is the app password you need to use
+        7. **PLEASE COPY IT**
+        8. Submit your Gmail address and App Password (the 16-character code you copied) to the `/auth` endpoint
+        9. The server will validate the credentials
+        10. It returns a `token` valid for 1 hour
+        11. **AGAIN, PLEASE COPY IT** :)
+    """
+
     email_str = str(req.email)
     password_str = str(req.password)
     
@@ -410,6 +430,19 @@ async def authenticate(req: AuthRequest):
 
 @app.post("/send", response_model=SendResponse)
 async def send(req: SendRequest, x_token: str = Header(..., alias="X-Token")):
+    """
+    If you are here after authenticating yourself from the `/auth` endpoint, GG!
+    Hope you have the token ready to paste :)
+
+    Now:
+
+    - Paste the token in the `X-Token` field and proceed with your email request.
+    - Be patient until all emails are fully sent.
+
+    Thank you for using this!
+    pmmdot! :)
+    """
+    
     creds = get_smtp_creds(x_token)
     
     sent = 0

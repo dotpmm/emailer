@@ -1,0 +1,38 @@
+# Git
+.git
+.gitignore
+.github
+
+# Python
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv
+venv
+ENV
+.eggs
+*.egg-info
+*.egg
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# Development
+.env
+*.log
+.coverage
+htmlcov
+.pytest_cache
+.mypy_cache
+
+# Documentation
+*.md
+!README.md
+
+# Lock files (we copy this explicitly)
+# uv.lock
