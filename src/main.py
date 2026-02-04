@@ -193,7 +193,7 @@ def get_dashboard_html(metrics: dict, active_tokens: int) -> str:
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Emailer API</title>
+    <title>Emailer v4</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         * {{
@@ -305,7 +305,7 @@ def get_dashboard_html(metrics: dict, active_tokens: int) -> str:
     </div>
     <div class="container">
         <div class="header">
-            <h1>Emailer API v4</h1>
+            <h1>Emailer v4</h1>
             <p>Minimal and secure token-based emailer API. Auth once, send many!</p>
         </div>
         <div class="cards">
@@ -331,7 +331,7 @@ def get_dashboard_html(metrics: dict, active_tokens: int) -> str:
 
 
 app = FastAPI(
-    title="Emailer API",
+    title="Emailer",
     version="4.0.0",
     description="Minimal, secure token-based email API. Auth once, send many!",
     docs_url="/docs",
