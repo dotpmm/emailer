@@ -1,0 +1,88 @@
+name: Production Deployment
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    name: Build & Validate
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v4
+        with:
+          version: "latest"
+
+      - name: Install dependencies
+        run: uv sync --locked --no-dev
+
+      - name: Validate Python syntax
+        run: python -m py_compile src/main.py
+
+  deploy:
+    name: Deploy to Render
+    needs: build
+    runs-on: ubuntu-latest
+
+    environment:
+      name: Production
+      url: https://emailer-v3-api.onrender.com
+
+    steps:
+      - name: Trigger Render deployment
+        id: trigger
+        run: |
+          response=$(curl -s -w "%{http_code}" -o /dev/null -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}")
+          echo "status_code=$response" >> $GITHUB_OUTPUT
+          if [ "$response" != "200" ] && [ "$response" != "201" ] && [ "$response" != "202" ]; then
+            echo "❌ Deploy hook failed with status: $response"
+            exit 1
+          fi
+          echo "Deploy hook triggered successfully"
+
+      - name: Wait for Render deployment
+        run: |
+          echo "Waiting for Render to build and deploy..."
+          sleep 180
+
+      - name: Verify deployment health
+        id: health
+        run: |
+          max_attempts=10
+          attempt=1
+          while [ $attempt -le $max_attempts ]; do
+            echo "Health check attempt(/iamalive) $attempt/$max_attempts..."
+            response=$(curl -s -w "\n%{http_code}" https://emailer-v3-api.onrender.com/iamalive)
+            http_code=$(echo "$response" | tail -n 1)
+            body=$(echo "$response" | head -n -1)
+            
+            if [ "$http_code" = "200" ]; then
+              echo "Deployment verified! Response: $body"
+              exit 0
+            fi
+            
+            echo "Service not ready (HTTP $http_code), waiting 30s..."
+            sleep 30
+            attempt=$((attempt + 1))
+          done
+          
+          echo "Health check failed after $max_attempts attempts"
+          exit 1
+
+      - name: Deployment success
+        if: success()
+        run: echo "Deployment completed successfully!"
+
+      - name: Deployment failed
+        if: failure()
+        run: echo "Deployment failed. Check Render logs for details."
