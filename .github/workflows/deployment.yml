@@ -45,7 +45,7 @@ jobs:
           response=$(curl -s -w "%{http_code}" -o /dev/null -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}")
           echo "status_code=$response" >> $GITHUB_OUTPUT
           if [ "$response" != "200" ] && [ "$response" != "201" ] && [ "$response" != "202" ]; then
-            echo "❌ Deploy hook failed with status: $response"
+            echo "Deploy hook failed with status: $response"
             exit 1
           fi
           echo "Deploy hook triggered successfully"
